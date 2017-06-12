@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using ConferenceDTO;
+using System.Text.Encodings.Web;
 
 namespace FrontEnd.Pages
 {
@@ -12,9 +13,13 @@ namespace FrontEnd.Pages
     {
         private readonly IApiClient _apiClient;
 
-        public SessionModel(IApiClient apiClient)
+        private readonly HtmlEncoder _htmlEncoder;
+    
+
+        public SessionModel(IApiClient apiClient, HtmlEncoder htmlEncoder)
         {
             _apiClient = apiClient;
+            _htmlEncoder = htmlEncoder;
         }
 
         public SessionResponse Session { get; set; }
@@ -35,10 +40,11 @@ namespace FrontEnd.Pages
             var startDate = allSessions.Min(s => s.StartTime?.Date);
 
             DayOffset = Session.StartTime?.DateTime.Subtract(startDate ?? DateTime.MinValue).Days;
-
             if (!string.IsNullOrEmpty(Session.Abstract))
             {
-                Session.Abstract = "<p>" + String.Join("</p><p>", Session.Abstract.Split("\r\n", StringSplitOptions.RemoveEmptyEntries)) + "</p>";
+                var encodedCrLf = _htmlEncoder.Encode("\r\n");
+                var encodedAbstract = _htmlEncoder.Encode(Session.Abstract);
+                Session.Abstract = "<p>" + String.Join("</p><p>", encodedAbstract.Split(encodedCrLf, StringSplitOptions.RemoveEmptyEntries)) + "</p>";
             }
 
             return Page();
