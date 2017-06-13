@@ -14,7 +14,7 @@ namespace FrontEnd.Pages
         private readonly IApiClient _apiClient;
 
         private readonly HtmlEncoder _htmlEncoder;
-    
+
 
         public SessionModel(IApiClient apiClient, HtmlEncoder htmlEncoder)
         {
@@ -26,6 +26,8 @@ namespace FrontEnd.Pages
 
         public int? DayOffset { get; set; }
 
+        public bool IsInPersonalAgenda { get; set; }
+
         public async Task<IActionResult> OnGet(int id)
         {
             Session = await _apiClient.GetSessionAsync(id);
@@ -34,6 +36,10 @@ namespace FrontEnd.Pages
             {
                 return RedirectToPage("/Index");
             }
+
+            var userSessions = await _apiClient.GetSessionsByAttendeeAsync(User.Identity.Name);
+
+            IsInPersonalAgenda = userSessions.Any(u => u.ID == id);
 
             var allSessions = await _apiClient.GetSessionsAsync();
 
@@ -48,6 +54,20 @@ namespace FrontEnd.Pages
             }
 
             return Page();
+        }
+
+        public async Task<IActionResult> OnPostAsync(int sessionId)
+        {
+            await _apiClient.AddSessionToAttendeeAsync(User.Identity.Name, sessionId);
+
+            return RedirectToPage();
+        }
+
+        public async Task<IActionResult> OnPostRemoveAsync(int sessionId)
+        {
+            await _apiClient.RemoveSessionFromAttendeeAsync(User.Identity.Name, sessionId);
+
+            return RedirectToPage();
         }
     }
 }
