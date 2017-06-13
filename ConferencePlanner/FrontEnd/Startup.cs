@@ -11,6 +11,7 @@ using Microsoft.Extensions.Logging;
 using System.Net.Http;
 using FrontEnd.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using FrontEnd.Filters;
 
 namespace FrontEnd
 {
@@ -60,11 +61,16 @@ namespace FrontEnd
                 });
             });
 
-            services.AddMvc()
-                    .AddRazorPagesOptions(options =>
-                    {
-                        options.AuthorizeFolder("/Admin", "Admin");
-                    });
+            services.AddMvc(options =>
+            {
+                options.Filters.AddService(typeof(RequireLoginFilter));
+            })
+            .AddRazorPagesOptions(options =>
+            {
+                options.AuthorizeFolder("/Admin", "Admin");
+            });
+
+            services.AddTransient<RequireLoginFilter>();
 
             var httpClient = new HttpClient
             {

@@ -31,6 +31,7 @@
             <div class="navbar-collapse collapse">
                 <ul class="nav navbar-nav">
                     <li><a asp-page="/Index">Agenda</a></li>
+                    <li authz="true"><a asp-page="/MyAgenda">My Agenda</a></li>
                 </ul>
                 <form asp-controller="account" asp-action="logout" method="post" id="logoutForm" class="navbar-right">
                     <ul class="nav navbar-nav navbar-right">
