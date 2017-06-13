@@ -10,6 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System.Net.Http;
 using FrontEnd.Services;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 namespace FrontEnd
 {
@@ -25,7 +26,45 @@ namespace FrontEnd
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddMvc();
+            services.AddCookieAuthentication(options =>
+            {
+                options.LoginPath = "/Login";
+                options.AccessDeniedPath = "/Denied";
+            });
+
+            services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+            });
+
+            var twitterConfig = Configuration.GetSection("twitter");
+            if (twitterConfig["consumerKey"] != null)
+            {
+                services.AddTwitterAuthentication(options => twitterConfig.Bind(options));
+            }
+
+            var googleConfig = Configuration.GetSection("google");
+            if (googleConfig["clientID"] != null)
+            {
+                services.AddGoogleAuthentication(options => googleConfig.Bind(options));
+            }
+
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("Admin", policy =>
+                {
+                    policy.RequireAuthenticatedUser()
+                          .RequireUserName(Configuration["admin"]);
+                });
+            });
+
+            services.AddMvc()
+                    .AddRazorPagesOptions(options =>
+                    {
+                        options.AuthorizeFolder("/Admin", "Admin");
+                    });
 
             var httpClient = new HttpClient
             {
@@ -48,6 +87,8 @@ namespace FrontEnd
             }
 
             app.UseStaticFiles();
+
+            app.UseAuthentication();
 
             app.UseMvc(routes =>
             {

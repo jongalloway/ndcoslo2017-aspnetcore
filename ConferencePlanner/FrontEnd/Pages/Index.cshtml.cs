@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using ConferenceDTO;
 using FrontEnd.Services;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
 
 namespace FrontEnd.Pages
 {
@@ -17,16 +19,27 @@ namespace FrontEnd.Pages
 
         public int CurrentDayOffset { get; set; }
 
-        protected readonly IApiClient _apiClient;
+        public bool IsAdmin { get; set; }
 
-        public IndexModel(IApiClient apiClient)
+        [TempData]
+        public string Message { get; set; }
+
+        public bool ShowMessage => !string.IsNullOrEmpty(Message);
+
+        protected readonly IApiClient _apiClient;
+        private readonly IAuthorizationService _authz;
+
+        public IndexModel(IApiClient apiClient, IAuthorizationService authz)
         {
             _apiClient = apiClient;
+            _authz = authz;
         }
 
         public async Task OnGet(int day = 0)
         {
             CurrentDayOffset = day;
+
+            IsAdmin = await _authz.AuthorizeAsync(User, "Admin");
 
             var sessions = await _apiClient.GetSessionsAsync();
 
