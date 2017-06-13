@@ -16,3 +16,10 @@
     }
 
    <p>@Html.Raw(Model.Session.Abstract)</p>  
+
+   <form method="post">
+    <input type="hidden" name="sessionId" value="@Model.Session.ID" />
+    <p>
+        <a authz-policy="Admin" asp-page="/Admin/EditSession" asp-route-id="@Model.Session.ID" class="btn btn-default btn-sm">Edit</a>
+    </p>
+</form>

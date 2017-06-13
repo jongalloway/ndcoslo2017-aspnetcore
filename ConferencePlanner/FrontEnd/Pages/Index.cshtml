@@ -41,12 +41,9 @@ ViewData["Title"] = "Home Page";
                                     <em><a asp-page="Speaker" asp-route-id="@speaker.ID">@speaker.Name</a></em>
                                 }
                             </p>
-                            @if (Model.IsAdmin)
-                            {
-                            <p>
+                            <p authz-policy="Admin">
                                 <a asp-page="/Admin/EditSession" asp-route-id="@session.ID" class="btn btn-default btn-xs">Edit</a>
                             </p>
-                            }
                         </div>
                     </div>
                 </div>
